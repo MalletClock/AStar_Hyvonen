@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
 
 public class Pathfinding : MonoBehaviour
 {
@@ -15,40 +16,38 @@ public class Pathfinding : MonoBehaviour
 
     private void Update()
     {
-        // Sebastian Lague's pathfinding is continual process that shows the shortest path that the algorithm found
-        FindPath(seeker.position, target.position);
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            FindPath(seeker.position, target.position);
+        }
     }
     private void FindPath(Vector3 startPos, Vector3 targetPos)
     {
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         Node startNode = grid.NodeFromWorldPoint(startPos);
         Node targetNode = grid.NodeFromWorldPoint(targetPos);
 
-        List<Node> openSet = new List<Node>();
+        Heap<Node> openSet = new Heap<Node>(grid.MaxSize);
         HashSet<Node> closedSet = new HashSet<Node>();
         openSet.Add(startNode);
 
         while (openSet.Count > 0)
         {
-            Node currentNode = openSet[0];
-            for(int i = 1; i < openSet.Count; i++)
-            {
-                if (openSet[i].fCost < currentNode.fCost || openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost)
-                {
-                    currentNode = openSet[i];
-                }
-            }
-
-            openSet.Remove(currentNode); // Remove the node from possible options
+            Node currentNode = openSet.RemoveFirst();
             closedSet.Add(currentNode); // Add it to the closed set so we wont try to calculate it again
 
-            if(currentNode == targetNode) // We found the path, now can retrace it back to the beginning and stop the loop
+            if (currentNode == targetNode) // We found the path, now can retrace it back to the beginning and stop the loop
             {
+                sw.Stop();
+                print("Path found in: " + sw.ElapsedMilliseconds + "ms");
                 RetracePath(startNode, targetNode);
                 return;
             }
 
             foreach (Node neighbour in grid.GetNeighbours(currentNode))
             {
+
                 if (!neighbour.walkable || closedSet.Contains(neighbour))
                 {
                     continue;
@@ -56,7 +55,7 @@ public class Pathfinding : MonoBehaviour
 
                 int newMovementCostToNeighbour = currentNode.gCost + GetDistance(currentNode, neighbour);
 
-                if(newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
+                if (newMovementCostToNeighbour < neighbour.gCost || !openSet.Contains(neighbour))
                 {
                     // Get neigbour fCost with gCost and hCost
                     neighbour.gCost = newMovementCostToNeighbour; // Cost of movement from current to neighbour

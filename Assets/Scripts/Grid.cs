@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class Grid : MonoBehaviour
 {
+    public bool onlyDisplayPathGizmos;
     /* Demo purposes to visualize NodeFromWorldPoint */
     //public Transform player;
     public LayerMask unwalkableMask;
@@ -21,6 +22,14 @@ public class Grid : MonoBehaviour
         gridSizeX = Mathf.RoundToInt(gridWorldSize.x / nodeDiameter);
         gridSizeY = Mathf.RoundToInt(gridWorldSize.y / nodeDiameter);
         CreateGrid();
+    }
+
+    public int MaxSize
+    {
+        get
+        {
+            return gridSizeX * gridSizeY;
+        }
     }
 
     void CreateGrid()
@@ -97,25 +106,39 @@ public class Grid : MonoBehaviour
     {
         Gizmos.DrawWireCube(transform.position, new Vector3(gridWorldSize.x, 1, gridWorldSize.y));
 
-        if (grid != null)
+        if (onlyDisplayPathGizmos)
         {
-            /* Demo purposes to visualize NodeFromWorldPoint */
-            //Node playerNode = NodeFromWorldPoint(player.position);
-
-            // Draw a different color cube if the Node was marked unwalkable
-            foreach (Node n in grid)
+            if(path != null)
             {
-                Gizmos.color = (n.walkable) ? Color.white : Color.red;
-                if (path != null)
-                    if (path.Contains(n))
-                        Gizmos.color = Color.black;
+                foreach (Node n in path)
+                {
+                    Gizmos.color = Color.black;
+                    Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - .1f)); // Space the cubes out a bit for readability 
+                }
+            }
+        }
+        else
+        {
+            if (grid != null)
+            {
                 /* Demo purposes to visualize NodeFromWorldPoint */
-                //if (playerNode == n)
-                //{
-                //    Gizmos.color = Color.cyan;
-                //}
+                //Node playerNode = NodeFromWorldPoint(player.position);
 
-                Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - .1f)); // Space the cubes out a bit for readability 
+                // Draw a different color cube if the Node was marked unwalkable
+                foreach (Node n in grid)
+                {
+                    Gizmos.color = (n.walkable) ? Color.white : Color.red;
+                    if (path != null)
+                        if (path.Contains(n))
+                            Gizmos.color = Color.black;
+                    /* Demo purposes to visualize NodeFromWorldPoint */
+                    //if (playerNode == n)
+                    //{
+                    //    Gizmos.color = Color.cyan;
+                    //}
+
+                    Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - .1f)); // Space the cubes out a bit for readability 
+                }
             }
         }
     }
